@@ -5,10 +5,9 @@
 import sys
 import argparse
 from pathlib import Path
-from tqdm import tqdm
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-from data.generate_data import DatasetGenerator
+from dataset.generator_runner import GeneratorRunner
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate labeled ACSC data from reviews")
@@ -17,4 +16,4 @@ if __name__ == "__main__":
         help="Path to input CSV file (raw review data) or 'all' to use all CSV files in data/raw"
     )
     args = parser.parse_args()
-    DatasetGenerator.from_args(args)
+    GeneratorRunner.from_args(args)
