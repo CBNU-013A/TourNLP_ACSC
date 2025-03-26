@@ -5,48 +5,41 @@ from pathlib import Path
 import json
 
 class CategoryExtracter:
-    def __init__(self, model="exaone3.5"):
+    def __init__(self, model="exaone3.5",
+                 temperature: float = 0.9,
+                 top_k: int = 50,
+                 top_p: float = 0.95,
+                 repetition_penalty: float = 1.1,
+                 num_predict: int = 256):
         self.model = model
+        self.temperature = temperature
+        self.top_k = top_k
+        self.top_p = top_p
+        self.repetition_penalty = repetition_penalty
+        self.num_predict = num_predict
 
-    def extract(self, reviews: list[str],
-                temperature: float = 0.9,
-                top_k: int = 50,
-                top_p: float = 0.95,
-                repetition_penalty: float = 1.1,
-                num_predict: int = 256) -> list[str]:
-        messages = category_extraction_prompt(reviews)
-        response = call_llm(
+    def _call_llm(self, messages) -> CategoryList:
+        return call_llm(
             messages,
             model=self.model,
-            temperature=temperature,
-            top_k=top_k,
-            top_p=top_p,
-            repetition_penalty=repetition_penalty,
-            num_predict=num_predict,
+            temperature=self.temperature,
+            top_k=self.top_k,
+            top_p=self.top_p,
+            repetition_penalty=self.repetition_penalty,
+            num_predict=self.num_predict,
             format=CategoryList.model_json_schema(),
             output_format=CategoryList
         )
+    def extract(self, reviews: list[str]) -> list[str]:
+        messages = category_extraction_prompt(reviews)
+        response = self._call_llm(messages)
         return response.categories
     
-    def normalize(self, categories: list[str],
-                  temperature: float = 0.9,
-                  top_k: int = 50,
-                  top_p: float = 0.95,
-                  repetition_penalty: float = 1.1,
-                  num_predict: int = 256) -> list[str]:
+    def normalize(self, categories: list[str]) -> list[str]:
         messages = category_normalization_prompt(categories)
-        response = call_llm(
-            messages,
-            model=self.model,
-            temperature=temperature,
-            top_k=top_k,
-            top_p=top_p,
-            repetition_penalty=repetition_penalty,
-            num_predict=num_predict,
-            format=CategoryList.model_json_schema(),
-            output_format=CategoryList
-        )
+        response = self._call_llm(messages)
         return response.categories
+    
 
 def merge_all_categories():
     category_dir = Path("data/interim")
@@ -58,7 +51,9 @@ def merge_all_categories():
             merged.update(json.load(f))
     merged_list = sorted(merged)
 
+    extractor = CategoryExtracter()
+    merged_list = extractor.normalize(categories=merged_list)
+
     with open("data/processed/category_set.json", "w", encoding="utf-8") as f:
         json.dump(merged_list, f, ensure_ascii=False, indent=2)
     print(f"✅ Merged {len(merged_list)} categories into data/processed/category_set.json")
-

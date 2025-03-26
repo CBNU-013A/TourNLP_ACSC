@@ -15,6 +15,7 @@ ollama를 통해, exaone3.5모델을 활용하여 학습 데이터를 생성, �
 ## Requirement
 - ollama
     - model: exaone3.5
+- python >= 3.9
 
 ## 실행 방법
 

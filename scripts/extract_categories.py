@@ -27,7 +27,10 @@ def main():
     df = pd.read_csv(csv_path)
 
     # 2. 리뷰 샘플링
-    reviews = df["Review"].dropna().sample(30, random_state=42).tolist()
+    review_series = df["Review"].dropna()
+    review_count = len(review_series)
+    sampled = review_series if review_count <= 30 else review_series.sample(30, random_state=42)
+    reviews = sampled.tolist()
 
     # 3. 추출
     extractor = CategoryExtracter()
