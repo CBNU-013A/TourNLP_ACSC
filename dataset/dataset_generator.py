@@ -6,10 +6,7 @@ from tqdm import tqdm
 from llm.client import call_ollama as call_llm
 from llm.prompt_templete import generate_labeled_data_prompt, generate_synthetic_data_prompt
 from common.schema import ReviewSample, ReviewLabel, SentimentList
-
-CATEGORY_PATH = Path("data/processed/category_set.json")
-OUTPUT_PATH = Path("data/processed/labeled_reviews.jsonl")
-RAW_DATA_PATH = Path("data/raw/")
+from common.utils import CATEGORY_PATH, INTERIM_DATASET_DIR
 
 class DatasetGenerator:
     def __init__(self, csv_path: str, model="exaone3.5"):
@@ -17,7 +14,7 @@ class DatasetGenerator:
         self.csv_path = csv_path
         self.reviews = self._load_csv()
         self.categories = self._load_categories()
-        self.interim_path = Path(f"data/interim/dataset/labeled_{Path(self.csv_path).stem}.jsonl")
+        self.interim_path = INTERIM_DATASET_DIR / f"labeled_{Path(self.csv_path).stem}.jsonl"
 
     def _load_csv(self, review_column: str = "Review") -> list[str]:
         df = pd.read_csv(self.csv_path)

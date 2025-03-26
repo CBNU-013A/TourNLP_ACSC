@@ -1,8 +1,7 @@
 from pathlib import Path
 from tqdm import tqdm
 from dataset.dataset_generator import DatasetGenerator
-
-RAW_DATA_PATH = Path("data/raw")
+from common.utils import RAW_DATA_DIR, INTERIM_DATASET_DIR, DATASET_PATH
 
 class GeneratorRunner:
     def __init__(self, model="exaone3.5"):
@@ -13,7 +12,7 @@ class GeneratorRunner:
         generator.generate_labeled_data(position=position)
 
     def run_all(self):
-        csv_files = list(RAW_DATA_PATH.glob("*.csv"))
+        csv_files = list(RAW_DATA_DIR.glob("*.csv"))
         for csv_path in tqdm(csv_files, desc="Processing CSV files"):
             tqdm.write(f"📄 Processing {csv_path.name}")
             self.run_on_csv(csv_path, position=1)
@@ -33,13 +32,11 @@ class GeneratorRunner:
 
     @staticmethod
     def merge_interim_files():
-        interim_dir = Path("data/interim/dataset")
-        output_path = Path("data/processed/labeled_reviews.jsonl")
         total = 0
-        with open(output_path, "w", encoding="utf-8") as out_file:
-            for file in sorted(interim_dir.glob("labeled_*.jsonl")):
+        with open(DATASET_PATH, "w", encoding="utf-8") as out_file:
+            for file in sorted(INTERIM_DATASET_DIR.glob("labeled_*.jsonl")):
                 with open(file, "r", encoding="utf-8") as f:
                     for line in f:
                         out_file.write(line)
                         total += 1
-        print(f"📦 Merged all interim files into {output_path}, Total data num: {total}")
+        print(f"📦 Merged all interim files into {DATASET_PATH}, Total data num: {total}")

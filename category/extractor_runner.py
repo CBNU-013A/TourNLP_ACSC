@@ -4,15 +4,13 @@ from pathlib import Path
 import pandas as pd
 import json
 from category.category_extractor import CategoryExtractor
-
-CATEGORY_DIR = Path("data/interim/categories")
-OUTPUT_PATH = Path("data/processed/category_set.json")
+from common.utils import INTERIM_CATEGORY_DIR, CATEGORY_PATH
 
 class CategoryExtractionRunner:
     def __init__(self, csv_path: str, max_reviews: int = 30):
         self.csv_path = Path(csv_path)
         self.max_reviews = max_reviews
-        self.output_path = CATEGORY_DIR / f"{self.csv_path.stem}.categories.json"
+        self.output_path = INTERIM_CATEGORY_DIR / f"{self.csv_path.stem}.categories.json"
 
     def run(self):
         reviews = self._load_and_sample_reviews()
@@ -33,7 +31,7 @@ class CategoryExtractionRunner:
     
     @staticmethod
     def merge_all_categories():
-        all_files = CATEGORY_DIR.glob("*.categories.json")
+        all_files = INTERIM_CATEGORY_DIR.glob("*.categories.json")
         merged = set()
         for file in all_files:
             with open(file, encoding="utf-8") as f:
@@ -42,9 +40,9 @@ class CategoryExtractionRunner:
         extractor = CategoryExtractor()
         merged_list = extractor.normalize(categories=merged_list)
 
-        with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
+        with open(CATEGORY_PATH, "w", encoding="utf-8") as f:
             json.dump(merged_list, f, ensure_ascii=False, indent=2)
-        print(f"✅ Merged {len(merged_list)} categories into {OUTPUT_PATH}")
+        print(f"✅ Merged {len(merged_list)} categories into {CATEGORY_PATH}")
 
     @classmethod
     def from_args(cls, args):

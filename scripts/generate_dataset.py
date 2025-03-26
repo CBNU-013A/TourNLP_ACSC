@@ -1,7 +1,6 @@
 # scripts/generate_dataset.py
 # 학습 데이터 생성
 
-# scripts/generate_dataset.py
 import sys
 import argparse
 from pathlib import Path
