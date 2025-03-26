@@ -1,0 +1,58 @@
+# category/runner.py
+
+from pathlib import Path
+import pandas as pd
+import json
+from category.category_extractor import CategoryExtractor
+
+CATEGORY_DIR = Path("data/interim/categories")
+OUTPUT_PATH = Path("data/processed/category_set.json")
+
+class CategoryExtractionRunner:
+    def __init__(self, csv_path: str, max_reviews: int = 30):
+        self.csv_path = Path(csv_path)
+        self.max_reviews = max_reviews
+        self.output_path = CATEGORY_DIR / f"{self.csv_path.stem}.categories.json"
+
+    def run(self):
+        reviews = self._load_and_sample_reviews()
+        extractor = CategoryExtractor()
+        categories = extractor.extract(reviews)
+
+        self.output_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.output_path.open("w", encoding="utf-8") as f:
+            json.dump(categories, f, ensure_ascii=False, indent=2)
+        print(f"✅ Saved to {self.output_path}, {len(categories)} categories found")
+
+    def _load_and_sample_reviews(self) -> list[str]:
+        df = pd.read_csv(self.csv_path)
+        reviews = df["Review"].dropna()
+        if len(reviews) <= self.max_reviews:
+            return reviews.tolist()
+        return reviews.sample(self.max_reviews, random_state=42).tolist()
+    
+    @staticmethod
+    def merge_all_categories():
+        all_files = CATEGORY_DIR.glob("*.categories.json")
+        merged = set()
+        for file in all_files:
+            with open(file, encoding="utf-8") as f:
+                merged.update(json.load(f))
+        merged_list = sorted(merged)
+        extractor = CategoryExtractor()
+        merged_list = extractor.normalize(categories=merged_list)
+
+        with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
+            json.dump(merged_list, f, ensure_ascii=False, indent=2)
+        print(f"✅ Merged {len(merged_list)} categories into {OUTPUT_PATH}")
+
+    @classmethod
+    def from_args(cls, args):
+        if args.merge:
+            cls.merge_all_categories()
+        elif args.csv_path:
+            runner = cls(csv_path=args.csv_path)
+            runner.run()
+        else:
+            print("Error: CSV path required unless --merge is specified.")
+    
