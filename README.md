@@ -22,26 +22,33 @@ ollama를 통해, exaone3.5모델을 활용하여 학습 데이터를 생성, �
 ### 1. 리뷰에서 카테고리 추출
 - 데이터에서 추출
 ```bash
-python scripts/extract_categories.py [csv 데이터 경로]
+python extract_categories.py --csv [Raw 데이터 경로]
 ```
 output은 data/interim/[데이터명].extracted_categories.json에 생성
 - 카테고리 목록 병합
 ```bash
-python scripts/extract_categories.py --merge
+python extract_categories.py --merge
 ```
 ouput은 data/processed/category_set.json
 
-### 2. 학습 데이터 생성(개발중)
+### 2. 학습 데이터 생성
 - 새 카테고리를 반영한 새로운 데이터 생성
 ```bash
-python scripts/generate_data.py
+python generate_dataset.py --csv [option] (--merge) (--split)
 ```
-- 기존 학습 데이터에서 새 카테고리 반영
-```bash
-python scripts/generate_data.py
-```
+- option
+    - `--csv`:
+        - `[경로]`: 단일 파일 처리
+        - `all`: 디렉토리 내의 모든 파일 처리
+    - `--merge`: 처리한 모든 파일 병합
+    - `--split`: train / dev / test 로 분할
+- 기존 학습 데이터에서 새 카테고리 반영 *(개발중)*
 
-### 3. 모델 학습(개발중) 
+### 3. 모델 학습 
 ```bash
-python scripts/model.py
+python finetune.py --config_file [설정 파일 경로] --mode [option]
 ```
+- mode
+    - train: 학습
+    - eval: 평가
+    - test: 테스트
