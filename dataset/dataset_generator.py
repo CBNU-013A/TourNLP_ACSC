@@ -32,7 +32,10 @@ class DatasetGenerator:
             ]
         except Exception as e:
             print(f"⚠️ Failed to parse response: {response}")
-            return []
+            return []    
+    
+    def generate_synthetic_data(self):
+        pass
 
     # --csv, Main function
     def generate_labeled_data(self, position: int = 0):

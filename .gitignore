@@ -2,5 +2,7 @@ data/raw
 data/interim
 *.pyc
 __pycache__/
-test.py
-test.ipynb
+.idea/
+data/processed/cached_*
+checkpoint-*
+test-*.txt

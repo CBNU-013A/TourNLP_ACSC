@@ -14,3 +14,21 @@ class ReviewSample(BaseModel):
 
 class SentimentList(BaseModel):
     sentiments: dict[str, Literal["pos", "neg", "neu", "none"]]
+
+class InputExample(BaseModel):
+    """
+    학습에 들어갈 데이터 클래스
+    """
+    guid: str
+    sentence: str
+    category: str
+    sentiment: str
+
+class InputFeatures(BaseModel):
+    """
+    Example 클래스를 토크나이징 후 모델에 넣을 수 있는 형태 클래스
+    """
+    input_ids: list[int]
+    attention_mask: list[int]
+    token_type_ids: list[int]
+    label: list[int]
