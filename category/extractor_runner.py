@@ -48,8 +48,8 @@ class CategoryExtractionRunner:
     def from_args(cls, args):
         if args.merge:
             cls.merge_all_categories()
-        elif args.csv_path:
-            runner = cls(csv_path=args.csv_path)
+        elif args.csv:
+            runner = cls(csv_path=args.csv)
             runner.run()
         else:
             print("Error: CSV path required unless --merge is specified.")

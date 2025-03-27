@@ -46,14 +46,16 @@ class GeneratorRunner:
         runner = cls()
         if args.csv == "all":
             runner.run_all()
-        elif args.csv == "merge":
-            cls.merge_interim_files()
-        elif args.csv == "split":
-            cls.final_split()
         elif args.csv:
             runner.run_on_csv(Path(args.csv))
         else:
             print("Error: CSV path required unless --all is specified.")
+        
+        if args.merge:
+            cls.merge_interim_files()
+        if args.split:
+            cls.final_split()
+        
 
     @staticmethod
     def merge_interim_files():
