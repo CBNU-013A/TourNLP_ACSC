@@ -1,5 +1,4 @@
-data/raw
-data/interim
+data/
 *.pyc
 __pycache__/
 .idea/

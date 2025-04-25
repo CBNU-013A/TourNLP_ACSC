@@ -24,5 +24,8 @@ class ModelRunner:
         elif cli_args.mode == 'test':
             tester = Tester(runner.args)
             tester.test()
+        elif cli_args.mode == 'predict':
+            tester = Tester(runner.args)
+            tester.predict()
         else:
             raise ValueError(f'Invalid mode: {cli_args.mode}')
