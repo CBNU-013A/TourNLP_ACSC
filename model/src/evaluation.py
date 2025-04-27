@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader, SequentialSampler
 from fastprogress.fastprogress import progress_bar
 import numpy as np
 
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, classification_report
 
 from common.utils import MODEL_FOR_TOKEN_CLASSIFICATION, CONFIG_CLASSES, TOKENIZER_CLASS
 from model.src.processor import Processor, load_and_cache_examples
@@ -110,13 +110,20 @@ class Evaluator:
 
         eval_loss = eval_loss / nb_eval_steps
         preds = np.argmax(preds, axis=1)
-        result = self.compute_metrics(out_label_ids, preds)
-        results.update(result)
 
+        # Detailed per-class metrics
+        report = classification_report(out_label_ids, preds, target_names=self.args.sentiments, digits=4)
+        # Write the report to a file
         output_dir = os.path.join(self.args.output_dir, mode)
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
-        
+        report_file = os.path.join(output_dir, f"{mode}_{global_step}_classification_report.txt" if global_step else f"{mode}_classification_report.txt")
+        with open(report_file, "w") as f_report:
+            f_report.write(report)
+
+        result = self.compute_metrics(out_label_ids, preds)
+        results.update(result)
+
         output_eval_file = os.path.join(output_dir, f"{mode}-{global_step}.txt" if global_step else f"{mode}.txt")
         with open(output_eval_file, "w") as f_w:
             for key in sorted(result.keys()):

@@ -22,20 +22,26 @@ class GeneratorRunner:
 
 
     @staticmethod
-    def final_split(train_ratio=0.8, dev_ratio=0.1, seed=42):
+    def final_split(train_ratio=0.8, dev_ratio=0.1, include_dev=True, seed=42):
         with open(DATASET_PATH, "r", encoding="utf-8") as f:
             data = [json.loads(line) for line in f]
-        
-        train_data, temp_data = train_test_split(
-            data, test_size=(1 - train_ratio), random_state=seed
-        )
 
-        dev_size = dev_ratio / (1 - train_ratio)  # temp 중 dev가 차지하는 비율
-        dev_data, test_data = train_test_split(
-            temp_data, test_size=(1 - dev_size), random_state=seed
-        )
+        if include_dev:
+            train_data, temp_data = train_test_split(
+                data, test_size=(1 - train_ratio), random_state=seed
+            )
+            dev_size = dev_ratio / (1 - train_ratio)
+            dev_data, test_data = train_test_split(
+                temp_data, test_size=(1 - dev_size), random_state=seed
+            )
+            splits = [("train", train_data), ("dev", dev_data), ("test", test_data)]
+        else:
+            train_data, test_data = train_test_split(
+                data, test_size=(1 - train_ratio), random_state=seed
+            )
+            splits = [("train", train_data), ("test", test_data)]
 
-        for name, split in zip(["train", "dev", "test"], [train_data, dev_data, test_data]):
+        for name, split in splits:
             with open(f"data/processed/{name}.jsonl", "w", encoding="utf-8") as f:
                 for item in split:
                     json.dump(item, f, ensure_ascii=False)
@@ -54,7 +60,12 @@ class GeneratorRunner:
         if args.merge:
             cls.merge_interim_files()
         if args.split:
-            cls.final_split()
+            cls.final_split(
+                train_ratio=getattr(args, "train_ratio", 0.8),
+                dev_ratio=getattr(args, "dev_ratio", 0.1),
+                include_dev=not getattr(args, "no_dev", False),
+                seed=getattr(args, "seed", 42)
+            )
         
 
     @staticmethod
