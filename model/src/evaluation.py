@@ -4,10 +4,10 @@ import re
 
 import torch
 from torch.utils.data import DataLoader, SequentialSampler
-from fastprogress.fastprogress import progress_bar
+from alive_progress import alive_bar
 import numpy as np
 
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, classification_report
 
 from common.utils import MODEL_FOR_TOKEN_CLASSIFICATION, CONFIG_CLASSES, TOKENIZER_CLASS
 from model.src.processor import Processor, load_and_cache_examples
@@ -73,7 +73,7 @@ class Evaluator:
                 for key in sorted(results.keys()):
                     f_w.write(f"{key}={str(results[key])}\n")
 
-    def _evaluate(self, model, eval_dataset, mode, global_step=None):
+    def _evaluate(self, model, eval_dataset, mode, global_step=None, disable_bar=False):
         results = {}
         eval_sampler = SequentialSampler(eval_dataset)
         eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=self.args.eval_batch_size)
@@ -84,39 +84,48 @@ class Evaluator:
         preds = None
         out_label_ids = None
 
-        for batch in progress_bar(eval_dataloader):
-            model.eval()
-            batch = tuple(t.to(self.args.device) for t in batch)
+        with alive_bar(len(eval_dataloader), title=f'Evaluating {mode}', dual_line=True, disable=disable_bar) as bar:
+            for batch in eval_dataloader:
+                model.eval()
+                batch = tuple(t.to(self.args.device) for t in batch)
 
-            with torch.no_grad():
-                inputs = {
-                    "input_ids": batch[0],
-                    "attention_mask": batch[1],
-                    "labels": batch[3],
-                }
-                if self.args.model_type != "distilbert":
-                    inputs["token_type_ids"] = batch[2]
-                outputs = model(**inputs)
-                tmp_eval_loss, logits = outputs[:2]
+                with torch.no_grad():
+                    inputs = {
+                        "input_ids": batch[0],
+                        "attention_mask": batch[1],
+                        "labels": batch[3],
+                    }
+                    if self.args.model_type != "distilbert":
+                        inputs["token_type_ids"] = batch[2]
+                    outputs = model(**inputs)
+                    tmp_eval_loss, logits = outputs[:2]
 
-                eval_loss += tmp_eval_loss.mean().item()
-            nb_eval_steps += 1
-            if preds is None:
-                preds = logits.detach().cpu().numpy()
-                out_label_ids = inputs["labels"].detach().cpu().numpy()
-            else:
-                preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
-                out_label_ids = np.append(out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0)
+                    eval_loss += tmp_eval_loss.mean().item()
+                nb_eval_steps += 1
+                if preds is None:
+                    preds = logits.detach().cpu().numpy()
+                    out_label_ids = inputs["labels"].detach().cpu().numpy()
+                else:
+                    preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
+                    out_label_ids = np.append(out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0)
+                bar()
 
         eval_loss = eval_loss / nb_eval_steps
         preds = np.argmax(preds, axis=1)
-        result = self.compute_metrics(out_label_ids, preds)
-        results.update(result)
 
+        # Detailed per-class metrics
+        report = classification_report(out_label_ids, preds, target_names=self.args.sentiments, digits=4)
+        # Write the report to a file
         output_dir = os.path.join(self.args.output_dir, mode)
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
-        
+        report_file = os.path.join(output_dir, f"{mode}_{global_step}_classification_report.txt" if global_step else f"{mode}_classification_report.txt")
+        with open(report_file, "w") as f_report:
+            f_report.write(report)
+
+        result = self.compute_metrics(out_label_ids, preds)
+        results.update(result)
+
         output_eval_file = os.path.join(output_dir, f"{mode}-{global_step}.txt" if global_step else f"{mode}.txt")
         with open(output_eval_file, "w") as f_w:
             for key in sorted(result.keys()):

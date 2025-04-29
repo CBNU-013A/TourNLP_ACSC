@@ -2,6 +2,7 @@ data/
 *.pyc
 __pycache__/
 .idea/
-data/processed/cached_*
+
+model/processed/
 checkpoint-*
 test-*.txt
