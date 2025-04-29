@@ -5,7 +5,7 @@ import json
 
 import torch
 from torch.utils.data import RandomSampler, DataLoader
-from fastprogress.fastprogress import master_bar, progress_bar
+from alive_progress import alive_bar
 from attrdict import AttrDict
 
 from transformers import (
@@ -180,68 +180,58 @@ class Trainer:
         tr_loss = 0.0
 
         model.zero_grad()
-        mb = master_bar(range(int(self.args.num_train_epochs)))
-        for epoch in mb:
-            epoch_iterator = progress_bar(train_dataloader, parent=mb)
-            for step, batch in enumerate(epoch_iterator):
-                model.train()
-                batch = tuple(t.to(self.args.device) for t in batch)
-                inputs = {
-                    "input_ids": batch[0],
-                    "attention_mask": batch[1],
-                    "labels": batch[3]
-                }
-                if self.args.model_type != "distilbert":
-                    inputs["token_type_ids"] = batch[2]
-                outputs = model(**inputs)
-                
-                loss = outputs[0]
+        for epoch in range(int(self.args.num_train_epochs)):
+            print(f"Epoch {epoch+1} started.")
+            with alive_bar(
+                    len(train_dataloader), 
+                    title=f'Epoch {epoch+1}',
+                    bar='notes',
+                    spinner='dots',
+                    dual_line=True
+                ) as bar:
+                for step, batch in enumerate(train_dataloader):
+                    model.train()
+                    batch = tuple(t.to(self.args.device) for t in batch)
+                    inputs = {
+                        "input_ids": batch[0],
+                        "attention_mask": batch[1],
+                        "labels": batch[3]
+                    }
+                    if self.args.model_type != "distilbert":
+                        inputs["token_type_ids"] = batch[2]
+                    outputs = model(**inputs)
+                    loss = outputs[0]
+                    if self.args.gradient_accumulation_steps > 1:
+                        loss = loss / self.args.gradient_accumulation_steps
+                    loss.backward()
+                    tr_loss += loss.item()
+                    if (step + 1) % self.args.gradient_accumulation_steps == 0 or (
+                        len(train_dataloader) <= self.args.gradient_accumulation_steps and (step + 1) == len(train_dataloader)
+                    ):
+                        torch.nn.utils.clip_grad_norm_(model.parameters(), self.args.max_grad_norm)
+                        optimizer.step()
+                        scheduler.step()
+                        model.zero_grad()
+                        global_step += 1
 
-                if self.args.gradient_accumulation_steps > 1:
-                    loss = loss / self.args.gradient_accumulation_steps
-                
-                loss.backward()
-                tr_loss += loss.item()
-                if (step + 1) % self.args.gradient_accumulation_steps == 0 or (
-                    len(train_dataloader) <= self.args.gradient_accumulation_steps
-                    and (step + 1) == len(train_dataloader)
-                ):
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), self.args.max_grad_norm)
+                        if self.args.logging_steps > 0 and global_step % self.args.logging_steps == 0:
+                            if self.args.evaluate_test_during_training:
+                                Evaluator(self.args)._evaluate(model, test_dataset, "test", global_step, disable_bar=True)
+                            else:
+                                Evaluator(self.args)._evaluate(model, dev_dataset, "dev", global_step, disable_bar=True)
 
-                    optimizer.step()
-                    scheduler.step()
-                    model.zero_grad()
-                    global_step += 1
-
-                    if self.args.logging_steps > 0 and global_step % self.args.logging_steps == 0:
-                        if self.args.evaluate_test_during_training:
-                            Evaluator(self.args)._evaluate(model, test_dataset, "test", global_step)
-                        else:
-                            Evaluator(self.args)._evaluate(model, dev_dataset, "dev", global_step)
-                
-                    if self.args.save_steps > 0 and global_step % self.args.save_steps == 0:
-                        # Save model checkpoint
-                        output_dir = os.path.join(self.args.output_dir, f"checkpoint-{global_step}")
-                        if not os.path.exists(output_dir):
-                            os.makedirs(output_dir)
-                        model_to_save = (
-                            model.module if hasattr(model, "module") else model
-                        )
-                        model_to_save.save_pretrained(output_dir)
-
-                        torch.save(self.args, os.path.join(output_dir, "training_args.bin"))
-                        print(f"Saving model checkpoint to {output_dir}")
-
-                        if self.args.save_optimizer:
-                            torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
-                            torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
-
-                if 0 < self.args.max_steps > 0 and global_step > self.args.max_steps:
-                    break
-            
-            mb.write(f"Epoch {epoch+1} done.")
-
-            if self.args.max_steps > 0 and global_step > self.args.max_steps:
-                break
+                        if self.args.save_steps > 0 and global_step % self.args.save_steps == 0:
+                            output_dir = os.path.join(self.args.output_dir, f"checkpoint-{global_step}")
+                            if not os.path.exists(output_dir):
+                                os.makedirs(output_dir)
+                            model_to_save = model.module if hasattr(model, "module") else model
+                            model_to_save.save_pretrained(output_dir)
+                            torch.save(self.args, os.path.join(output_dir, "training_args.bin"))
+                            print(f"Saving model checkpoint to {output_dir}")
+                            if self.args.save_optimizer:
+                                torch.save(optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
+                                torch.save(scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
+                    bar()
+            print(f"Epoch {epoch+1} done.")
 
         return global_step, tr_loss/global_step
