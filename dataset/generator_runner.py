@@ -9,15 +9,15 @@ class GeneratorRunner:
     def __init__(self, model="exaone3.5"):
         self.model = model
     
-    def run_on_csv(self, csv_path: Path, position: int = 0):
-        generator = DatasetGenerator(str(csv_path), model=self.model)
+    def run_on_csv(self, csv_path: Path, position: int = 0, neutral: bool = False):
+        generator = DatasetGenerator(str(csv_path), model=self.model, neutral=neutral)
         generator.generate_labeled_data(position=position)
 
-    def run_all(self):
+    def run_all(self, neutral: bool = False):
         csv_files = list(RAW_DATA_DIR.glob("*.csv"))
         for csv_path in tqdm(csv_files, desc="Processing CSV files"):
             tqdm.write(f"📄 Processing {csv_path.name}")
-            self.run_on_csv(csv_path, position=1)
+            self.run_on_csv(csv_path, position=1, neutral=neutral)
         self.merge_interim_files()
 
 
@@ -51,11 +51,9 @@ class GeneratorRunner:
     def from_args(cls, args):
         runner = cls()
         if args.csv == "all":
-            runner.run_all()
+            runner.run_all(neutral=getattr(args, "neutral", False))
         elif args.csv:
-            runner.run_on_csv(Path(args.csv))
-        else:
-            print("Error: CSV path required unless --all is specified.")
+            runner.run_on_csv(Path(args.csv), neutral=getattr(args, "neutral", False))
         
         if args.merge:
             cls.merge_interim_files()

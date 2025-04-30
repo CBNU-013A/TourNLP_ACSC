@@ -114,7 +114,7 @@ class Evaluator:
         preds = np.argmax(preds, axis=1)
 
         # Detailed per-class metrics
-        report = classification_report(out_label_ids, preds, target_names=self.args.sentiments, digits=4)
+        report = classification_report(out_label_ids, preds, target_names=self.args.sentiments, digits=3)
         # Write the report to a file
         output_dir = os.path.join(self.args.output_dir, mode)
         if not os.path.exists(output_dir):
