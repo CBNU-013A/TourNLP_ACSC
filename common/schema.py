@@ -6,14 +6,25 @@ class CategoryList(BaseModel):
 
 class ReviewLabel(BaseModel):
     category: str
+    review: Literal["pos", "neg", "none"]
+
+class ReviewLabel_neu(BaseModel):
+    category: str
     review: Literal["pos", "neg", "neu", "none"]
 
 class ReviewSample(BaseModel):
     sentence: str
     label: list[ReviewLabel]
 
-class SentimentList(BaseModel):
+class ReviewSample_neu(BaseModel):
+    sentence: str
+    label: list[ReviewLabel_neu]
+
+class SentimentList_neu(BaseModel):
     sentiments: dict[str, Literal["pos", "neg", "neu", "none"]]
+
+class SentimentList(BaseModel):
+    sentiments: dict[str, Literal["pos", "neg", "none"]]
 
 class InputExample(BaseModel):
     """

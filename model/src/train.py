@@ -119,7 +119,7 @@ class Trainer:
         균형 잡힌 클래스 분포를 가진 Train Loop
         """
         # 1. 데이터셋에서 각 감성(sentiment) 클래스 별로 개수 세기
-        label_counts = {0: 0, 1: 0, 2: 0, 3: 0}  # {none: 0, neg: 0, neu: 0, pos: 0} 가정
+        label_counts = {0: 0, 1: 0, 2: 0}  # {none: 0, neg: 0, neu: 0, pos: 0} 가정
         for _, _, _, labels in train_dataset:
             label = labels.item()  # 라벨 값 추출
             label_counts[label] += 1

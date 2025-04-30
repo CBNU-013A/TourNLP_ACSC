@@ -4,7 +4,8 @@ from pathlib import Path
 import pandas as pd
 import json
 from category.category_extractor import CategoryExtractor
-from common.utils import INTERIM_CATEGORY_DIR, CATEGORY_PATH
+from common.utils import INTERIM_CATEGORY_DIR, CATEGORY_PATH, RAW_DATA_DIR
+from alive_progress import alive_bar
 
 class CategoryExtractionRunner:
     def __init__(self, csv_path: str, max_reviews: int = 30):
@@ -48,8 +49,16 @@ class CategoryExtractionRunner:
     def from_args(cls, args):
         if args.merge:
             cls.merge_all_categories()
+        elif args.all:
+            csv_files = list(RAW_DATA_DIR.glob("*.csv"))
+            with alive_bar(len(csv_files), title="Processing CSV files", bar="filling", spinner="ball_belt") as bar:
+                for csv_path in csv_files:
+                    bar()
+                    print(f"📄 Processing {csv_path.name}")
+                    runner = cls(str(csv_path))
+                    runner.run()
         elif args.csv:
-            runner = cls(csv_path=args.csv)
+            runner = cls(args.csv)
             runner.run()
         else:
             print("Error: CSV path required unless --merge is specified.")

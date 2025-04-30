@@ -23,6 +23,7 @@ if __name__ == "__main__":
         help="Split the dataset into train, dev, and test"
     )
     parser.add_argument("--no-dev", action="store_true", help="Omit dev split when splitting the dataset")
+    parser.add_argument("--neutral", action="store_true", help="Include neutral label in the dataset")
     parser.add_argument("--train_ratio", type=float, default=0.8, help="Proportion of data used for training")
     parser.add_argument("--dev_ratio", type=float, default=0.1, help="Proportion of data used for dev (if included)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for splitting")

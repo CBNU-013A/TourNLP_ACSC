@@ -30,6 +30,8 @@ def call_ollama(
     )
     content = responce.message.content
     if output_format:
+        if output_format == str:
+            return content
         return output_format.model_validate_json(content)
     return content
 
@@ -50,5 +52,7 @@ def call_openai(
     )
     content = response["choices"][0]["message"]["content"]
     if output_format:
+        if output_format == str:
+            return content
         return output_format.model_validate_json(content)
     return content
