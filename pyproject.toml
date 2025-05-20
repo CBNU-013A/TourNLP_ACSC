@@ -21,6 +21,19 @@ dependencies = [
     "scikit-learn (>=1.6.1,<2.0.0)"
 ]
 
+[tool.pytest.ini_options]
+pythonpath = ["."]
+asyncio_mode = "auto"
+addopts = "--cov=app --cov-report=term --cov-report=html"
+
+[tool.poetry]
+name = "piknlp-backend"
+version = "0.1.0"
+description = "Sentiment-based travel recommender system"
+authors = ["HuSngYn <huseongyoon@gmail.com>"]
+packages = [
+    { include = "app" }
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

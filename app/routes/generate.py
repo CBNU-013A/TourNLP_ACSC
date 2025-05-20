@@ -20,25 +20,25 @@ def set_categories(req: CategorySetRequest):
         raise HTTPException(status_code=400, detail="Only manual category setting is supported here")
     cm.set_all(req.categories)
     logger.info(f"💾 카테고리 수동 설정 완료: {req.categories}")
-    return {"categories": cm.get_all}
+    return {"categories": cm.get_all()}
 
 # PATCH add
 @router.patch("/categories", response_model=CategorySetResponse)
 def add_categoriy(category: str = Query(...)):
     cm.add(category)
     logger.info(f"💾 카테고리 수동 추가 완료: {category}")
-    return {"categories": cm.get_all}
+    return {"categories": cm.get_all()}
 
 # DELETE remove
 @router.delete("/categories/{name}", response_model=CategorySetResponse)
 def remove_category(name: str):
     cm.remove(name)
     logger.info(f"🗑️ {name} 카테고리 삭제 완료")
-    return {"categories": cm.get_all}
+    return {"categories": cm.get_all()}
 
 # DELETE clear
 @router.delete("/categories", response_model=CategorySetResponse)
 def clear_categories():
     cm.clear()
     logger.info("🚀 카테고리 삭제 완료")
-    return {"categories": cm.get_all}
+    return {"categories": cm.get_all()}

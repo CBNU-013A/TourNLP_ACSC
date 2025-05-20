@@ -6,15 +6,18 @@ from typing import List
 
 class CategoryManager:
     def __init__(self, path: str = "data/categories.json"):
-        self.path = path
+        self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._categories = self._load()
 
     def _load(self) -> List[str]:
-        if not Path(self.path).exists():
+        try:
+            if not self.path.exists() or self.path.stat().st_size == 0:
+                return []
+            with open(self.path, "r", encoding="utf-8") as f:
+                return json.load(f).get("categories", [])
+        except (json.JSONDecodeError, TypeError, AttributeError):  # ← 이거 추가!
             return []
-        with open(self.path, "r", encoding="utf-8") as f:
-            return json.load(f).get("categories", [])
         
     def save(self) -> None:
         with open(self.path, "w", encoding="utf-8") as f:
@@ -24,15 +27,21 @@ class CategoryManager:
         return self._categories
     
     def set_all(self, categories: List[str]) -> None:
+        if not isinstance(categories, list) or not all(isinstance(i, str) for i in categories):
+            raise TypeError("categories must be List[str]")
         self._categories = categories
         self.save()
 
     def add(self, category: str) -> None:
+        if not isinstance(category, str):
+            raise TypeError("category must be str")
         if category not in self._categories:
             self._categories.append(category)
             self.save()
-    
+
     def remove(self, category: str) -> None:
+        if not isinstance(category, str):
+            raise TypeError("category must be str")
         if category in self._categories:
             self._categories.remove(category)
             self.save()

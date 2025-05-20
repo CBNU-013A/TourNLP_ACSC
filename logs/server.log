@@ -1,0 +1,29 @@
+2025-05-21 02:16:32,773 - httpx - INFO - HTTP Request: GET http://testserver/categories "HTTP/1.1 404 Not Found"
+2025-05-21 02:16:32,784 - httpx - INFO - HTTP Request: POST http://testserver/categories "HTTP/1.1 404 Not Found"
+2025-05-21 02:16:32,787 - httpx - INFO - HTTP Request: POST http://testserver/categories "HTTP/1.1 404 Not Found"
+2025-05-21 02:16:32,791 - httpx - INFO - HTTP Request: PATCH http://testserver/categories?category=%EA%B5%90%ED%86%B5 "HTTP/1.1 404 Not Found"
+2025-05-21 02:16:32,795 - httpx - INFO - HTTP Request: PATCH http://testserver/categories?category=%EC%87%BC%ED%95%91 "HTTP/1.1 404 Not Found"
+2025-05-21 02:16:32,796 - httpx - INFO - HTTP Request: DELETE http://testserver/categories/%EC%87%BC%ED%95%91 "HTTP/1.1 404 Not Found"
+2025-05-21 02:16:32,799 - httpx - INFO - HTTP Request: POST http://testserver/categories "HTTP/1.1 404 Not Found"
+2025-05-21 02:16:32,801 - httpx - INFO - HTTP Request: DELETE http://testserver/categories "HTTP/1.1 404 Not Found"
+2025-05-21 02:19:15,473 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/generate/categories "HTTP/1.1 200 OK"
+2025-05-21 02:19:15,477 - app.core.logger - INFO - 💾 카테고리 수동 설정 완료: ['숙소', '음식']
+2025-05-21 02:19:15,478 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/generate/categories "HTTP/1.1 200 OK"
+2025-05-21 02:19:15,480 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/generate/categories "HTTP/1.1 400 Bad Request"
+2025-05-21 02:19:15,483 - app.core.logger - INFO - 💾 카테고리 수동 추가 완료: 교통
+2025-05-21 02:19:15,484 - httpx - INFO - HTTP Request: PATCH http://testserver/api/v1/generate/categories?category=%EA%B5%90%ED%86%B5 "HTTP/1.1 200 OK"
+2025-05-21 02:19:15,486 - app.core.logger - INFO - 💾 카테고리 수동 추가 완료: 쇼핑
+2025-05-21 02:19:15,487 - httpx - INFO - HTTP Request: PATCH http://testserver/api/v1/generate/categories?category=%EC%87%BC%ED%95%91 "HTTP/1.1 200 OK"
+2025-05-21 02:19:15,488 - app.core.logger - INFO - 🗑️ 쇼핑 카테고리 삭제 완료
+2025-05-21 02:19:15,489 - httpx - INFO - HTTP Request: DELETE http://testserver/api/v1/generate/categories/%EC%87%BC%ED%95%91 "HTTP/1.1 200 OK"
+2025-05-21 02:19:15,491 - app.core.logger - INFO - 💾 카테고리 수동 설정 완료: ['숙소', '음식', '교통']
+2025-05-21 02:19:15,492 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/generate/categories "HTTP/1.1 200 OK"
+2025-05-21 02:19:15,494 - app.core.logger - INFO - 🚀 카테고리 삭제 완료
+2025-05-21 02:19:15,495 - httpx - INFO - HTTP Request: DELETE http://testserver/api/v1/generate/categories "HTTP/1.1 200 OK"
+2025-05-21 02:20:48,096 - app.core.logger - INFO - 💾 카테고리 수동 설정 완료: ['string']
+2025-05-21 02:20:52,108 - app.core.logger - INFO - 💾 카테고리 수동 설정 완료: ['string']
+2025-05-21 02:21:30,628 - app.core.logger - INFO - 💾 카테고리 수동 추가 완료: tmp
+2025-05-21 02:21:45,929 - app.core.logger - INFO - 🗑️ tmp 카테고리 삭제 완료
+2025-05-21 02:21:54,198 - app.core.logger - INFO - 🗑️ tmp 카테고리 삭제 완료
+2025-05-21 02:21:59,006 - app.core.logger - INFO - 🗑️ tmp 카테고리 삭제 완료
+2025-05-21 02:22:12,237 - app.core.logger - INFO - 🚀 카테고리 삭제 완료
